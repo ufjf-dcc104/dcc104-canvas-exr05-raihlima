@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <title>Jogo 05</title>
+  <script src="Tanque.js"></script>
+  <script src="Tiro.js"></script>
+  <script src="BarraStatus.js"></script>
+  <script src="Barreira.js"></script>
+  <script src="Inimigo.js"></script>
+</head>
+<body>
+  <h1>Jogo 05</h1>
+  <canvas id="canvas" width="700" height="500"></canvas>
+  <script>
+  //Audio
+  var somIni = new Audio();
+  somIni.src = "Som/Inicio.m4a";
+
+  var somFim = new Audio();
+  somFim.src = "Som/Fim.m4a";
+
+  var somSel = new Audio();
+  somSel.src = "Som/Selecao.m4a";
+
+  var somTiro = new Audio();
+  somTiro.src = "Som/Tiro.m4a";
+
+  var somExplosao = new Audio();
+  somExplosao.src = "Som/Explosao.m4a";
+
+  var somDano = new Audio();
+  somDano.src = "Som/Dano.m4a";
+
+  var somTiroBarreira = new Audio();
+  somTiroBarreira.src = "Som/Barreira.m4a";
+
+  var somDecisao = new Audio();
+  somDecisao.src = "Som/Decisao.m4a";
+
+
+  //Tela
+  var canvas = document.getElementsByTagName("canvas")[0];
+  var ctx = canvas.getContext("2d");
+  var dt = anterior = 0;
+
+  var barra = new BarraStatus();
+
+  var imagem = new Image();
+  imagem.src = "bg.png";
+
+  var tanqueIMG = new Image();
+  tanqueIMG.src = "tanque.png";
+
+  //  Tanques
+  var tanque1 = 0;
+  var tanque2 = 0;
+
+  var tanque1Pronto = 0;
+  var tanque2Pronto = false;
+
+  //Barreiras
+  var barreira = [];
+
+  //Tiros
+  var tiro = [];
+
+  //Tela
+  var cenario = 0;
+
+  //Criar Inimigo para perseguir
+  var inimigo =[];
+
+  var controleTempo = 0;
+
+  function atualizar(t){
+    if(cenario == 0){
+      somIni.play();
+      ctx.fillStyle = "black";
+      ctx.fillRect(0,0, canvas.width, canvas.height);
+
+      ctx.drawImage(imagem,0,0);
+      ctx.font = '70pt Arial';
+      ctx.strokeStyle = "black";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.strokeText("Duelo", 350, 150);
+      ctx.fillText("Duelo", 350, 150);
+      ctx.font = '20pt Arial';
+      ctx.fillText("Pressione qualquer tecla para continuar", 350, 470);
+
+      requestAnimationFrame(atualizar);
+
+
+    }
+    else if (cenario == 1){
+      somIni.play();
+
+      ctx.fillStyle = "black";
+      ctx.fillRect(0,0, canvas.width, canvas.height);
+      ctx.drawImage(imagem,0,0);
+      ctx.textAlign = "center";
+      ctx.font = '50pt Arial';
+      ctx.fillStyle = "wheat";
+      ctx.fillText("Selecione o tanque", 350, 80);
+      ctx.font = '30pt Arial';
+
+      //Seleção do Jogador 1
+      ctx.fillText("J1", 233, 150);
+
+      ctx.strokeStyle = "white";
+      //Contorno de seleção
+      if(tanque1 == 0){
+        ctx.strokeRect(209,190, 50, 50);
+      }  else if(tanque1==1){
+        ctx.strokeRect(209,330, 50, 50);
+      }
+      ctx.lineWidth=3;
+      ctx.font = '25pt Arial';
+      ctx.fillStyle = "limeGreen";
+      ctx.fillText("Limão", 234, 280);
+    //  ctx.fillRect(219,200, 30, 30);
+      ctx.fillStyle = "green";
+      ctx.fillText("Floresta", 234, 420);
+      //ctx.fillRect(219,340, 30, 30);
+
+      ctx.drawImage(tanqueIMG,0,0,30,30,219,200, 30, 30);
+      ctx.drawImage(tanqueIMG,0,30,30,30,219,340, 30, 30);
+
+      //Seleção do Jogador 2
+      ctx.font = '30pt Arial';
+      ctx.fillStyle = "wheat";
+      ctx.fillText("J2", 466, 150);
+
+      ctx.strokeStyle = "white";
+      //Contorno de seleção
+      if(tanque2 == 0){
+        ctx.strokeRect(442,190, 50, 50);
+      }  else if(tanque2==1){
+        ctx.strokeRect(442,330, 50, 50);
+      }
+    //  ctx.lineWidth=1;
+      ctx.font = '25pt Arial';
+      ctx.fillStyle = "SteelBlue";
+
+    //  ctx.strokeText("Aço", 466, 280);
+      ctx.fillText("Aço", 466, 280);
+      //ctx.fillRect(452,200, 30, 30);
+      ctx.fillStyle = "Navy";
+    //ctx.strokeText("Marinho", 466, 420);
+      ctx.fillText("Marinho", 466, 420);
+      //ctx.fillRect(452,340, 30, 30);
+
+      ctx.drawImage(tanqueIMG,0,60,30,30,452,200, 30, 30);
+      ctx.drawImage(tanqueIMG,0,90,30,30,452,340, 30, 30);
+
+      if(tanque1Pronto==true && tanque2Pronto == true){
+        tanque1 = new Tanque (tanque1);
+        tanque2 = new Tanque (tanque2+2);
+        cenario =2;
+      }
+      requestAnimationFrame(atualizar);
+
+    }
+    else if (cenario == 2){
+      somFim.pause();
+      somIni.play();
+      dt = (t - anterior)/1000;
+
+      var bg = new Image();
+      bg.src = "bgJogo.png";
+
+      //criar as barreiras
+      if(barreira.length==0){
+        criarBarreira();
+      }
+
+      //Não está sendo usado
+      if(inimigo.length==0){
+        criarInimigos();
+      }
+
+      //Desenhar o fundo
+
+      ctx.drawImage(bg,0,0);
+      //Desenhar os tanques
+      tanque1.desenhar(ctx);
+      tanque2.desenhar(ctx);
+
+      //Mover os tanques
+      tanque1.mover(dt);
+      tanque2.mover(dt);
+
+      //desenhar os tiros
+      for(var i=0;i<tiro.length;i++){
+        tiro[i].desenhar(ctx);
+        tiro[i].mover(dt);
+      }
+
+      //Deletar tiro quando sair da tela ou quando acertar alguem
+      for(var i=0;i<tiro.length;i++){
+        if(tiro[i].verificaSaidaTela()==true){
+          tiro.splice(i,1);
+          break;
+        }
+        if(tiro[i].verificaColisao(tanque1)==true){
+          somDano.load();
+          somDano.play();
+          tanque1.alteraEnergia();
+          tiro.splice(i,1);
+          break;
+        }
+        if(tiro[i].verificaColisao(tanque2)==true){
+          somDano.load();
+          somDano.play();
+          tanque2.alteraEnergia();
+          tiro.splice(i,1);
+          break;
+        }
+      }
+
+      //Deletar o tiro quando atingir a barreira
+      for(var i=0;i<tiro.length;i++){
+        for(var j=0;j<barreira.length;j++){
+          if(tiro[i].verificaColisao(barreira[j])==true){
+            somTiroBarreira.load();
+            somTiroBarreira.play();
+            tiro.splice(i,1);
+            break;
+          }
+        }
+      }
+
+      //Verifica colisao com a barreira
+      for(var i=0;i<barreira.length;i++){
+        if(barreira[i].verificaColisao(tanque1)==true){
+          somExplosao.load();
+          somExplosao.play();
+          tanque1.resetarPosição();
+          tanque1.vida-=1;
+        }
+        if(barreira[i].verificaColisao(tanque2)==true){
+          tanque2.resetarPosição();
+          somExplosao.load();
+          somExplosao.play();
+          tanque2.vida-=1;
+        }
+      }
+
+      //trocar de cenario quando alguem tem -1 vidas
+      if(tanque1.vida<0 || tanque2.vida<0){
+        somIni.pause();
+        somFim.play();
+        cenario=3;
+      }
+
+      //Desenhar as barreiras
+      for(var i=0;i<barreira.length;i++){
+        barreira[i].desenhar();
+      }
+
+      //Desenhar os inimigos
+      for(var i=0;i<inimigo.length;i++){
+        inimigo[i].desenhar(ctx);
+        inimigo[i].mover(dt,tanque2);
+      }
+
+
+      //desenha a BarraStatus
+      barra.desenhar(ctx,tanque1,tanque2);
+      anterior = t;
+      requestAnimationFrame(atualizar);
+    }
+
+    else if (cenario==3){
+
+      //Tela final
+      ctx.textAlign = "center";
+      ctx.fillStyle = "black";
+      ctx.fillRect(0,0, canvas.width, canvas.height);
+            ctx.drawImage(imagem,0,0);
+      ctx.strokeStyle="black";
+      ctx.fillStyle = 'white';
+      ctx.font = '40pt Arial';
+      ctx.strokeText("Vencedor", 350,100);
+      ctx.fillText("Vencedor", 350, 100);
+
+
+      //verifica quem tem mais vida
+      if(tanque1.vida<tanque2.vida){
+        ctx.strokeStyle="black";
+        ctx.fillStyle = 'white';
+        ctx.strokeText("Jogador 2", 350,250);
+        ctx.fillText("Jogador 2", 350, 250);
+      } else {
+        ctx.strokeStyle="black";
+        ctx.fillStyle = 'white';
+        ctx.strokeText("Jogador 1", 350,250);
+        ctx.fillText("Jogador 1", 350, 250);
+
+      }
+
+    }
+  };
+
+  function criarBarreira(){
+    //barreira nas bordas
+    barreira.push(new Barreira(0,0,20,500));
+    barreira.push(new Barreira(680,0,20,500));
+    barreira.push(new Barreira(0,480,700,20));
+    barreira.push(new Barreira(0,barra.height,700,20));
+
+    //Barreira no meio da arena
+    barreira.push(new Barreira(0,150,200,20));
+    barreira.push(new Barreira(0,350,200,20));
+    barreira.push(new Barreira(500,150,200,20));
+    barreira.push(new Barreira(500,350,200,20));
+
+    barreira.push(new Barreira(300,200,100,100));
+  }
+
+
+  function criarInimigos(){
+    //if(cadenciaInimigo>3){
+  //inimigo.push(new Inimigo());
+    //    cadenciaInimigo=0;
+    //  }
+
+  }
+
+
+  addEventListener("keydown", function (e) {
+    switch (e.keyCode) {
+      case 13://Enter
+      if(cenario==1){
+        tanque1Pronto = 1;
+        somDecisao.load();
+        somDecisao.play();
+        break;
+      } else if(cenario ==2){
+        if(tanque1.cadencia>1){
+          somTiro.load();
+          somTiro.play();
+          tiro.push(new Tiro(tanque1.sentido,tanque1));
+          tanque1.cadencia=0;
+          //tanque2.vx=+40;
+          break;
+        }
+        break;
+
+      }
+      else if(cenario==3){
+        cenario =2;
+      }
+
+      case 37: //Botão Esquerdo
+
+      if(cenario==2){
+        tanque1.vx = -150;
+        tanque1.sentido = 3;
+        break;
+      }
+      break;
+      case 39: //Botão Direito
+      if(cenario == 1){
+
+      }
+      if(cenario==2){
+        tanque1.vx =150;
+        tanque1.sentido = 1;
+        break;
+      }
+      break;
+      case 38: //Botão Cima
+      if(cenario ==1){
+        if(tanque1Pronto == 0){
+          somSel.load();
+          somSel.play();
+          if(tanque1==1){
+            tanque1 = 0;
+            break;
+          } else {
+            tanque1 =1;
+            break;
+          }
+        } else {
+          break;
+        }
+
+      }
+      else if(cenario==2){
+        tanque1.vy=-150;
+        tanque1.sentido = 0;
+        break;
+      }
+
+      case 40: //Botão Baixo
+      if(cenario ==1){
+        somSel.load();
+        somSel.play();
+        if(tanque1Pronto == 0){
+          if(tanque1 == 0){
+            tanque1=1;
+            break;
+          } else {
+            tanque1=0;
+            break;
+          }
+
+        } else {
+          break;
+        }
+      }
+      if(cenario==2){
+        tanque1.vy=150;
+        tanque1.sentido = 2;
+        break;
+      }
+
+      //Jogador 2
+      case 65: // Botao A //Esquerda
+      if(cenario==2){
+        tanque2.vx=-150;
+        tanque2.sentido = 3;
+        break;
+      }
+
+      case 83: //Botao S //Baixo
+      if(cenario==1){
+        if(tanque2Pronto == false){
+          somSel.load();
+          somSel.play();
+          if(tanque2==0){
+            tanque2=1;
+            break;
+          } else {
+            tanque2=0;
+            break;
+          }
+        } else {
+          break;
+        }
+      } else if(cenario==2){
+        tanque2.vy=150;
+        tanque2.sentido = 2;
+        break;
+      }
+
+      case 68: // Botao D // Direita
+      if(cenario==2){
+        tanque2.vx=150;
+        tanque2.sentido = 1;
+        break;
+      }
+
+      case 87: // Botao W// Cima
+      if(cenario==1){
+        if(tanque2Pronto==false){
+          somSel.load();
+          somSel.play();
+          if(tanque2==0){
+            tanque2=1;
+            break;
+          } else {
+            tanque2=0;
+            break;
+          }
+        } else {
+          break;
+        }
+      } else if(cenario==2){
+        tanque2.vy=-150;
+        tanque2.sentido = 0;
+        break;
+      }
+      case 32://Espaço
+      if(cenario==1){
+        somDecisao.load();
+        somDecisao.play();
+        tanque2Pronto = true;
+        break;
+      }
+      else if(cenario==2){
+        if(tanque2.cadencia>1){
+          somTiro.load();
+          somTiro.play();
+          tiro.push(new Tiro(tanque2.sentido,tanque2));
+          tanque2.cadencia=0;
+          //tanque2.vx=+40;
+          break;
+        }
+        break;
+      }
+      default:
+      if(cenario==0){
+        cenario=1;
+      }
+    }
+  });
+  addEventListener("keyup", function (e) {
+    switch (e.keyCode) {
+      case 37: //Botão Esquerdo
+
+      if(cenario==2){
+        tanque1.vx = 0;
+      } //-100*fase/2;
+      break;
+      case 39: //Botão Direito
+
+      if(cenario==2){
+        tanque1.vx = 0;
+      } //-100*fase/2;
+      break;
+      case 38: //Botão Cima
+
+      if(cenario==2){
+        tanque1.vy = 0;
+      }
+      break;
+      case 40: //Botão Baixo
+      if(cenario==2){
+        tanque1.vy=0;
+        break;
+      }
+      //Jogador 2
+      case 65: // Botao A //Esquerda
+      if(cenario==2){
+        tanque2.vx=0;
+        break;
+      }
+      case 68: // Botao D // Direita
+      if(cenario==2){
+        tanque2.vx=0;
+        break;
+      }
+
+      case 87: // Botao W// Cima
+      if(cenario==2){
+        tanque2.vy=0;
+        break;
+      }
+
+      case 83: // Botao S// Baixo
+      if(cenario==2){
+        tanque2.vy=0;
+        break;
+      }
+
+      default:
+      if(cenario==0){
+        cenario=1;
+      }
+    }
+  });
+
+
+  requestAnimationFrame(atualizar);
+
+</script>
+</body>
+</html>
